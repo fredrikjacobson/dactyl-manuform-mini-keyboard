@@ -385,7 +385,7 @@
    (thumb-1x-layout single-plate)
    (thumb-15x-layout single-plate)
   ; (thumb-15x-layout larger-plate)
-))
+   ))
 
 (def thumb-post-tr (translate [(- (/ mount-width 2) post-adj)  (- (/ mount-height  2) post-adj) 0] web-post))
 (def thumb-post-tl (translate [(+ (/ mount-width -2) post-adj) (- (/ mount-height  2) post-adj) 0] web-post))
@@ -688,7 +688,7 @@
              (key-place lastcol (inc row) web-post-tr)
              (key-place lastcol (inc row) wide-post-tr)))
           ;;
-)))
+          )))
 
 (def pinky-walls
   (union
@@ -714,6 +714,25 @@
                                screw-insert-holes))
                   (translate [0 0 -20] (cube 350 350 40))))
 
+(defn plate-right [c]
+  (let [use-screw-inserts? (get c :configuration-use-screw-inserts?)
+        screw-outers       (if use-screw-inserts?
+                             screw-insert-outers
+                             ())
+        screw-inners       (if use-screw-inserts?
+                             (translate [0 0 -2] screw-insert-screw-holes)
+                             ())
+        bot                (cut (translate [0 0 -0.1] (union case-walls screw-outers)))
+        inner-thing        (difference (translate [0 0 -0.1] (project (union (extrude-linear {:height 5
+                                                                                              :scale  0.1
+                                                                                              :center true} bot)
+                                                                             (cube 50 50 5))))
+                                       screw-inners)]
+    (difference (extrude-linear {:height 3} inner-thing)
+                screw-inners)))
+
+(def c {:configuration-use-screw-inserts?       true})
+
 (spit "things/right.scad"
       (write-scad model-right))
 
@@ -737,6 +756,9 @@
         (translate [0 0 -20] (cube 350 350 40)))))
 
 (spit "things/right-plate.scad"
+        (write-scad (plate-right c)))
+
+#_(spit "things/right-plate.scad"
       (write-scad
        (cut
         (translate [0 0 -0.1]
